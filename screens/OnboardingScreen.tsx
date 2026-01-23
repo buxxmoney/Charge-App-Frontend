@@ -15,28 +15,81 @@ import { colors, spacing } from '../constants/theme';
 import { useAuth } from '../hooks/useAuth';
 
 export const OnboardingScreen: React.FC = () => {
-    const { signInWithGoogle, sendPhoneOTP, verifyPhoneOTP, isLoading, session } = useAuth();
+  const { signUpWithEmail, signInWithEmail, sendPhoneOTP, verifyPhoneOTP, isLoading, session, user } = useAuth();
 
-  useEffect(() => {
-    if (session && step === 'google') {
-      setStep('phone');
-    }
-  }, [session]);
-
-  const [step, setStep] = useState<'google' | 'phone' | 'otp'>('phone');
+  const [step, setStep] = useState<'login' | 'signup' | 'confirm-email' | 'phone' | 'otp'>('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
 
-  const handleGoogleSignIn = async () => {
-    try {
-      const result = await signInWithGoogle();
-      if (result.success) {
+  // Determine initial step based on session state
+  useEffect(() => {
+    if (session && user) {
+      // User has a valid session, check if they need phone verification
+      // This will be handled by App.tsx checking hasProfile
+      // If they're here with a session, they need to complete phone verification
+      if (step === 'login' || step === 'signup' || step === 'confirm-email') {
         setStep('phone');
+      }
+    }
+  }, [session, user]);
+
+  const handleLogin = async () => {
+    if (!email.trim()) {
+      Alert.alert('Error', 'Please enter an email');
+      return;
+    }
+
+    if (!password.trim()) {
+      Alert.alert('Error', 'Please enter a password');
+      return;
+    }
+
+    try {
+      const result = await signInWithEmail(email, password);
+      if (result.success) {
+        // App.tsx will handle routing based on profile status
       } else {
-        Alert.alert('Error', result.error || 'Google Sign In failed');
+        Alert.alert('Error', result.error || 'Login failed');
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to sign in with Google');
+      Alert.alert('Error', 'Failed to log in');
+      console.error(error);
+    }
+  };
+
+  const handleSignUp = async () => {
+    if (!email.trim()) {
+      Alert.alert('Error', 'Please enter an email');
+      return;
+    }
+
+    if (!password.trim()) {
+      Alert.alert('Error', 'Please enter a password');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters');
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      Alert.alert('Error', 'Please enter a valid email');
+      return;
+    }
+
+    try {
+      const result = await signUpWithEmail(email, password);
+      if (result.success) {
+        // Move to email confirmation step (or phone if email confirmation is disabled)
+        setStep('confirm-email');
+      } else {
+        Alert.alert('Error', result.error || 'Signup failed');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to sign up');
       console.error(error);
     }
   };
@@ -48,12 +101,11 @@ export const OnboardingScreen: React.FC = () => {
     }
 
     if (!/^\+?[\d\s\-\(\)]{10,}$/.test(phoneNumber)) {
-      Alert.alert('Error', 'Please enter a valid phone number');
+      Alert.alert('Error', 'Please enter a valid phone number with country code (e.g., +1234567890)');
       return;
     }
 
     try {
-      // Send real OTP via Twilio
       const result = await sendPhoneOTP(phoneNumber);
       if (result.success) {
         setStep('otp');
@@ -81,13 +133,28 @@ export const OnboardingScreen: React.FC = () => {
     try {
       const result = await verifyPhoneOTP(phoneNumber, otp);
       if (result.success) {
-        Alert.alert('Success', 'Welcome to Fuse Wallet!');
-        // App will automatically redirect to home screen via session state
+        Alert.alert('Success', 'Welcome to Charge Wallet!');
+        // App will automatically redirect to home screen via profile state check
       } else {
         Alert.alert('Error', result.error || 'OTP verification failed');
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to verify OTP');
+      console.error(error);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    try {
+      const result = await sendPhoneOTP(phoneNumber);
+      if (result.success) {
+        Alert.alert('Success', 'New OTP sent to your phone!');
+        setOtp('');
+      } else {
+        Alert.alert('Error', result.error || 'Failed to resend OTP');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to resend OTP');
       console.error(error);
     }
   };
@@ -98,6 +165,7 @@ export const OnboardingScreen: React.FC = () => {
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
         <View style={styles.header}>
@@ -106,71 +174,196 @@ export const OnboardingScreen: React.FC = () => {
           <Text style={styles.subtitle}>Send money, instantly.</Text>
         </View>
 
-        {/* Google Sign In Step */}
-        {step === 'google' && (
+        {/* Login Step */}
+        {step === 'login' && (
           <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>Get Started</Text>
+            <Text style={styles.stepTitle}>Welcome Back</Text>
             <Text style={styles.stepDescription}>
-              Sign up with Google to create your wallet
+              Log in to your account
             </Text>
 
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Email</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="you@example.com"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!isLoading}
+                placeholderTextColor={colors.textSecondary}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                editable={!isLoading}
+                placeholderTextColor={colors.textSecondary}
+              />
+            </View>
+
             <TouchableOpacity
-              style={styles.googleButton}
-              onPress={handleGoogleSignIn}
+              style={[
+                styles.submitButton,
+                isLoading && styles.submitButtonDisabled,
+              ]}
+              onPress={handleLogin}
               disabled={isLoading}
             >
               {isLoading ? (
                 <ActivityIndicator color={colors.background} />
               ) : (
-                <>
-                  <Feather name="mail" size={20} color={colors.background} />
-                  <Text style={styles.googleButtonText}>
-                    Sign Up with Google
-                  </Text>
-                </>
+                <Text style={styles.submitButtonText}>Log In</Text>
               )}
             </TouchableOpacity>
 
-            <View style={styles.divider}>
-              <View style={styles.line} />
-              <Text style={styles.dividerText}>OR</Text>
-              <View style={styles.line} />
+            <TouchableOpacity
+              style={styles.switchAuthButton}
+              onPress={() => {
+                setStep('signup');
+                setEmail('');
+                setPassword('');
+              }}
+            >
+              <Text style={styles.switchAuthText}>
+                Don't have an account? <Text style={styles.switchAuthLink}>Sign Up</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Sign Up Step */}
+        {step === 'signup' && (
+          <View style={styles.stepContainer}>
+            <Text style={styles.stepTitle}>Create Account</Text>
+            <Text style={styles.stepDescription}>
+              Sign up to create your wallet
+            </Text>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Email</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="you@example.com"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!isLoading}
+                placeholderTextColor={colors.textSecondary}
+              />
             </View>
 
-            <Text style={styles.privacyText}>
-              We never store your Google password. Your account is secured with
-              Supabase.
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="At least 6 characters"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                editable={!isLoading}
+                placeholderTextColor={colors.textSecondary}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.submitButton,
+                isLoading && styles.submitButtonDisabled,
+              ]}
+              onPress={handleSignUp}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={colors.background} />
+              ) : (
+                <Text style={styles.submitButtonText}>Create Account</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.switchAuthButton}
+              onPress={() => {
+                setStep('login');
+                setEmail('');
+                setPassword('');
+              }}
+            >
+              <Text style={styles.switchAuthText}>
+                Already have an account? <Text style={styles.switchAuthLink}>Log In</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Email Confirmation Step */}
+        {step === 'confirm-email' && (
+          <View style={styles.stepContainer}>
+            <View style={styles.iconContainer}>
+              <Feather name="mail" size={48} color={colors.primary} />
+            </View>
+
+            <Text style={styles.stepTitle}>Check Your Email</Text>
+            <Text style={styles.stepDescription}>
+              We've sent a confirmation link to:
             </Text>
+            <Text style={styles.emailText}>{email}</Text>
+            <Text style={styles.stepDescription}>
+              Click the link in the email to verify your account, then return to the app.
+            </Text>
+
+            <View style={styles.waitingContainer}>
+              <ActivityIndicator color={colors.primary} size="small" />
+              <Text style={styles.waitingText}>Waiting for confirmation...</Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() => {
+                setStep('signup');
+                setEmail('');
+                setPassword('');
+              }}
+            >
+              <Text style={styles.secondaryButtonText}>Use a different email</Text>
+            </TouchableOpacity>
           </View>
         )}
 
         {/* Phone Number Step */}
         {step === 'phone' && (
           <View style={styles.stepContainer}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => setStep('google')}
-            >
-              <Feather name="arrow-left" size={20} color={colors.primary} />
-              <Text style={styles.backButtonText}>Back</Text>
-            </TouchableOpacity>
+            <View style={styles.iconContainer}>
+              <Feather name="smartphone" size={48} color={colors.primary} />
+            </View>
 
             <Text style={styles.stepTitle}>Verify Phone Number</Text>
             <Text style={styles.stepDescription}>
-              We'll send you an OTP to verify your phone
+              We need to verify your phone number to complete setup
             </Text>
 
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Phone Number</Text>
               <TextInput
                 style={styles.input}
-                placeholder="+1 (555) 123-4567"
+                placeholder="+27 82 123 4567"
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
                 keyboardType="phone-pad"
                 editable={!isLoading}
                 placeholderTextColor={colors.textSecondary}
               />
+              <Text style={styles.inputHint}>Include your country code (e.g., +27 for South Africa)</Text>
             </View>
 
             <TouchableOpacity
@@ -209,7 +402,7 @@ export const OnboardingScreen: React.FC = () => {
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Verification Code</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, styles.otpInput]}
                 placeholder="000000"
                 value={otp}
                 onChangeText={setOtp}
@@ -235,7 +428,10 @@ export const OnboardingScreen: React.FC = () => {
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => setStep('phone')}>
+            <TouchableOpacity 
+              onPress={handleResendOTP}
+              disabled={isLoading}
+            >
               <Text style={styles.resendText}>Didn't receive code? Resend</Text>
             </TouchableOpacity>
           </View>
@@ -282,49 +478,37 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: colors.text,
     marginBottom: spacing.md,
+    textAlign: 'center',
   },
   stepDescription: {
     fontSize: 16,
     fontWeight: '400' as const,
     color: colors.textSecondary,
     marginBottom: spacing.lg,
+    textAlign: 'center',
   },
-  googleButton: {
+  iconContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  emailText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: colors.primary,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  waitingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.md,
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    marginBottom: spacing.lg,
+    marginVertical: spacing.xl,
   },
-  googleButtonText: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: colors.background,
-    marginLeft: spacing.md,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.lg,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  dividerText: {
-    fontSize: 12,
+  waitingText: {
+    fontSize: 14,
     fontWeight: '400' as const,
     color: colors.textSecondary,
-    marginHorizontal: spacing.md,
-  },
-  privacyText: {
-    fontSize: 12,
-    fontWeight: '400' as const,
-    color: colors.textSecondary,
-    textAlign: 'center',
+    marginLeft: spacing.sm,
   },
   backButton: {
     flexDirection: 'row',
@@ -346,6 +530,12 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: spacing.sm,
   },
+  inputHint: {
+    fontSize: 12,
+    fontWeight: '400' as const,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+  },
   input: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
@@ -355,6 +545,11 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     color: colors.text,
     fontSize: 16,
+  },
+  otpInput: {
+    textAlign: 'center',
+    fontSize: 24,
+    letterSpacing: 8,
   },
   submitButton: {
     paddingVertical: spacing.md,
@@ -371,8 +566,36 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: colors.background,
   },
-  resendText: {
+  secondaryButton: {
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  secondaryButtonText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: colors.primary,
+  },
+  switchAuthButton: {
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  switchAuthText: {
+    fontSize: 14,
+    fontWeight: '400' as const,
+    color: colors.textSecondary,
+  },
+  switchAuthLink: {
+    color: colors.primary,
+    fontWeight: '600' as const,
+  },
+  privacyText: {
     fontSize: 12,
+    fontWeight: '400' as const,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  resendText: {
+    fontSize: 14,
     fontWeight: '400' as const,
     color: colors.primary,
     textAlign: 'center',

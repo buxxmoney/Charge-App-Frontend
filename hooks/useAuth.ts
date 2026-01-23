@@ -28,30 +28,59 @@ export const useAuth = () => {
     return () => subscription?.unsubscribe();
   }, []);
 
-  const signInWithGoogle = async (): Promise<AuthResult> => {
+  const signUpWithEmail = async (email: string, password: string): Promise<AuthResult> => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
       });
 
       if (error) {
         throw error;
       }
 
-      if (data?.url) {
-        // Open the OAuth URL in browser
-        await WebBrowser.openBrowserAsync(data.url);
-        // Session will be set via onAuthStateChange listener when user returns
+      if (data.user) {
+        setUser(data.user);
         return { success: true };
       }
 
-      return { success: false, error: 'No OAuth URL returned' };
+      return { success: false, error: 'Signup failed' };
     } catch (error: any) {
-      console.error('Google Sign In error:', error);
+      console.error('Signup error:', error);
       return {
         success: false,
-        error: error.message || 'Google Sign In failed',
+        error: error.message || 'Email signup failed',
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signInWithEmail = async (email: string, password: string): Promise<AuthResult> => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        setUser(data.user);
+        setSession(data.session);
+        return { success: true };
+      }
+
+      return { success: false, error: 'Login failed' };
+    } catch (error: any) {
+      console.error('Login error:', error);
+      return {
+        success: false,
+        error: error.message || 'Email login failed',
       };
     } finally {
       setIsLoading(false);
@@ -61,44 +90,18 @@ export const useAuth = () => {
   const sendPhoneOTP = async (phoneNumber: string): Promise<AuthResult> => {
     setIsLoading(true);
     try {
-      // Generate random 6-digit OTP
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      // Call Supabase Edge Function to send OTP via Twilio Verify
+      const { data, error } = await supabase.functions.invoke('send-otp', {
+        body: { phoneNumber },
+      });
 
-      // Call Supabase Edge Function to send SMS via Twilio
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/send-otp`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_KEY}`,
-          },
-          body: JSON.stringify({ phoneNumber, otp }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to send OTP');
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Failed to send OTP');
       }
 
-      // Store OTP in database with 10-minute expiration
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-
-      const { error: insertError } = await supabase
-        .from('otp_codes')
-        .insert([
-          {
-            phone_number: phoneNumber,
-            code: otp,
-            expires_at: expiresAt.toISOString(),
-          },
-        ]);
-
-      if (insertError) {
-        console.error('OTP storage error:', insertError);
-        return { success: false, error: 'Failed to store OTP' };
+      if (!data?.success) {
+        throw new Error(data?.error || 'Failed to send OTP');
       }
 
       return { success: true };
@@ -115,28 +118,23 @@ export const useAuth = () => {
 
   const verifyPhoneOTP = async (
     phoneNumber: string,
-    otp: string
+    code: string
   ): Promise<AuthResult> => {
     setIsLoading(true);
     try {
-      // Check if OTP exists and is not expired
-      const { data: otpRecord, error: otpError } = await supabase
-        .from('otp_codes')
-        .select('*')
-        .eq('phone_number', phoneNumber)
-        .eq('code', otp)
-        .gt('expires_at', new Date().toISOString())
-        .single();
+      // Verify OTP via Twilio Verify
+      const { data, error } = await supabase.functions.invoke('send-otp', {
+        body: { phoneNumber, code, action: 'verify' },
+      });
 
-      if (otpError || !otpRecord) {
-        return { success: false, error: 'Invalid or expired OTP' };
+      if (error) {
+        console.error('Verification error:', error);
+        return { success: false, error: 'Verification failed' };
       }
 
-      // Mark OTP as verified
-      await supabase
-        .from('otp_codes')
-        .update({ verified: true })
-        .eq('id', otpRecord.id);
+      if (!data?.success) {
+        return { success: false, error: data?.error || 'Invalid or expired code' };
+      }
 
       // Get authenticated user
       const { data: { user: authUser } } = await supabase.auth.getUser();
@@ -149,14 +147,20 @@ export const useAuth = () => {
       const keypair = await generateKeypair();
       const viewKey = await generateViewKey();
 
+      // Convert to hex string format for Supabase bytea columns (\\x prefix)
+      const toPostgresHex = (hex: string): string => {
+        const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
+        return '\\x' + cleanHex;
+      };
+
       // Create user profile
       const { error: profileError } = await supabase
         .from('profiles')
         .insert([
           {
-            id: authUser.id,
-            first_name: authUser.user_metadata?.name?.split(' ')[0] || 'User',
-            last_name: authUser.user_metadata?.name?.split(' ')[1] || '',
+            user_id: authUser.id,
+            first_name: authUser.email?.split('@')[0] || 'User',
+            last_name: '',
             phone_number: phoneNumber,
             phone_verified: true,
             public_key: keypair.publicKey,
@@ -166,7 +170,7 @@ export const useAuth = () => {
 
       if (profileError) {
         console.error('Profile creation error:', profileError);
-        return { success: false, error: 'Failed to create profile' };
+        return { success: false, error: 'Failed to create profile: ' + profileError.message };
       }
 
       // Create on-chain record
@@ -175,9 +179,9 @@ export const useAuth = () => {
         .insert([
           {
             user_id: authUser.id,
-            device_public: keypair.publicKey,
-            backend_public: null,
-            view_key: viewKey,
+            device_public: toPostgresHex(keypair.publicKey),
+            backend_public: toPostgresHex(keypair.publicKey), // Placeholder
+            view_key: toPostgresHex(viewKey),
             generation_index: 0,
             status: 'TX_UNSENT',
           },
@@ -185,8 +189,11 @@ export const useAuth = () => {
 
       if (onChainError) {
         console.error('On-chain setup error:', onChainError);
-        return { success: false, error: 'Failed to setup on-chain account' };
+        console.warn('On-chain record creation failed, but profile was created');
       }
+
+      // Refresh the session to trigger onAuthStateChange
+      await supabase.auth.refreshSession();
 
       return { success: true };
     } catch (error: any) {
@@ -243,7 +250,8 @@ export const useAuth = () => {
     session,
     isLoading,
     loading: isLoading,
-    signInWithGoogle,
+    signUpWithEmail,
+    signInWithEmail,
     sendPhoneOTP,
     verifyPhoneOTP,
     signOut,

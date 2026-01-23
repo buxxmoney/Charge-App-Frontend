@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "fuse-wallet",
-    "slug": "fuse-wallet",
+    "name": "Charge",
+    "slug": "charge",
+    "scheme": "charge",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
