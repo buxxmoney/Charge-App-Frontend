@@ -1,145 +1,116 @@
-import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, ActivityIndicator, View } from 'react-native';
+// App.tsx
+
+import React from 'react';
+import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
-import { Session } from '@supabase/supabase-js';
-import * as Linking from 'expo-linking';
-import { RootNavigator } from './navigation/RootNavigator';
-import { OnboardingScreen } from './screens/OnboardingScreen';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
+
 import { WalletProvider } from './context/WalletContext';
-import { supabase, handleAuthDeepLink } from './services/supabase';
+import { HomeScreen } from './screens/HomeScreen';
+import { HistoryScreen } from './screens/HistoryScreen';
+import { ContactsScreen } from './screens/ContactsScreen';
+import { SettingsScreen } from './screens/SettingsScreen';
+import { ReceiveScreen } from './screens/ReceiveScreen';
+import { SelectRecipientScreen } from './screens/SelectRecipientsScreen';
+import { SendAmountScreen } from './screens/SendAmountScreen';
 import { colors } from './constants/theme';
 
-export default function App() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasProfile, setHasProfile] = useState(false);
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
 
-  // Check if user has completed profile setup
-  const checkProfile = async (userId: string) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('user_id, phone_verified')
-        .eq('user_id', userId)
-        .single();
-
-      if (error || !profile) {
-        return false;
-      }
-
-      return profile.phone_verified === true;
-    } catch (error) {
-      console.error('Error checking profile:', error);
-      return false;
-    }
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const initializeApp = async () => {
-      try {
-        // Sign out on app start - requires fresh login each time (like a financial app)
-        await supabase.auth.signOut();
-        
-        if (isMounted) {
-          setSession(null);
-          setHasProfile(false);
-        }
-      } catch (error) {
-        console.error('Error during initialization:', error);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    initializeApp();
-
-    // Listen for auth state changes (for login/signup)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (isMounted) {
-          setSession(session);
-
-          if (session?.user) {
-            const profileComplete = await checkProfile(session.user.id);
-            setHasProfile(profileComplete);
-          } else {
-            setHasProfile(false);
-          }
-        }
-      }
-    );
-
-    return () => {
-      isMounted = false;
-      subscription?.unsubscribe();
-    };
-  }, []);
-
-  // Handle deep links for auth callback
-  useEffect(() => {
-    const handleInitialUrl = async () => {
-      try {
-        const initialUrl = await Linking.getInitialURL();
-        if (initialUrl) {
-          console.log('Initial URL:', initialUrl);
-          await handleAuthDeepLink(initialUrl);
-        }
-      } catch (error) {
-        console.error('Error handling initial URL:', error);
-      }
-    };
-
-    handleInitialUrl();
-
-    const subscription = Linking.addEventListener('url', async (event) => {
-      console.log('Deep link received:', event.url);
-      await handleAuthDeepLink(event.url);
-    });
-
-    return () => {
-      subscription?.remove();
-    };
-  }, []);
-
-  if (isLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // Show onboarding/login if no session OR if session exists but profile is incomplete
-  if (!session || !hasProfile) {
-    return <OnboardingScreen />;
-  }
-
-  // Show authenticated app
+function MainTabs() {
   return (
-    <SafeAreaView style={styles.container}>
-      <WalletProvider>
-        <NavigationContainer>
-          <RootNavigator />
-        </NavigationContainer>
-      </WalletProvider>
-    </SafeAreaView>
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName: keyof typeof Feather.glyphMap;
+
+          switch (route.name) {
+            case 'Home':
+              iconName = 'home';
+              break;
+            case 'History':
+              iconName = 'clock';
+              break;
+            case 'Contacts':
+              iconName = 'users';
+              break;
+            case 'Settings':
+              iconName = 'settings';
+              break;
+            default:
+              iconName = 'help-circle';
+          }
+
+          return <Feather name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: {
+          backgroundColor: colors.background,
+          borderTopColor: colors.border,
+          paddingTop: 8,
+          height: 88,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '500',
+          marginTop: 4,
+        },
+        headerShown: false,
+      })}
+    >
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="History" component={HistoryScreen} />
+      <Tab.Screen name="Contacts" component={ContactsScreen} />
+      <Tab.Screen name="Settings" component={SettingsScreen} />
+    </Tab.Navigator>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
+function RootStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="MainTabs" component={MainTabs} />
+      <Stack.Screen
+        name="Receive"
+        component={ReceiveScreen}
+        options={{
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <Stack.Screen
+        name="SelectRecipient"
+        component={SelectRecipientScreen}
+        options={{
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <Stack.Screen
+        name="SendAmount"
+        component={SendAmountScreen}
+        options={{
+          animation: 'slide_from_right',
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <WalletProvider>
+        <NavigationContainer>
+          <StatusBar style="dark" />
+          <RootStack />
+        </NavigationContainer>
+      </WalletProvider>
+    </SafeAreaProvider>
+  );
+}

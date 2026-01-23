@@ -1,4 +1,14 @@
 import { supabase } from './supabase';
+const MOCK_ADDRESSES: Record<string, string> = {
+  USDC: '0x742d35Cc6634C0532925a3b844Bc9e7595f8bD21',
+  ZARP: '0x8Fc57204c35fb9317D91285eF52D6b892EC08cD3',
+};
+
+const MOCK_USERS: Record<string, { user_id: string; name: string }> = {
+  '+27821234567': { user_id: 'user-uuid-1', name: 'John Smith' },
+  '+27829876543': { user_id: 'user-uuid-2', name: 'Sarah Johnson' },
+  '+27831112222': { user_id: 'user-uuid-3', name: 'Mike Williams' },
+};
 
 export const api = {
   // Get user balance (on-chain or from a balance cache table if you have one)
@@ -15,6 +25,37 @@ export const api = {
       console.error('Error fetching balance:', error);
       return { zarBalance: 0, usdBalance: 0, currency: 'ZAR' };
     }
+  },
+
+  getDepositAddress: async (currency: 'USDC' | 'ZARP'): Promise<string> => {
+    //  Uncomment when backend is ready
+    // const response = await fetch(`${API_URL}/get_deposit_address?currency=${currency}`, {
+    //   headers: {
+    //     Authorization: `Bearer ${await getToken()}`,
+    //   },
+    // });
+    // if (!response.ok) throw new Error('Failed to fetch deposit address');
+    // const data = await response.json();
+    // return data.address;
+
+    // Mock response for now
+    await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
+    return MOCK_ADDRESSES[currency];
+  },
+
+  lookupUser: async (phone: string): Promise<{ user_id: string; name: string } | null> => {
+    // TODO: Uncomment when backend is ready
+    // const response = await fetch(`${API_URL}/lookup_user?phone=${encodeURIComponent(phone)}`, {
+    //   headers: { Authorization: `Bearer ${await getToken()}` },
+    // });
+    // if (!response.ok) return null;
+    // const data = await response.json();
+    // return data;
+
+    // Mock response
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    const normalized = phone.replace(/[\s\-\(\)]/g, '');
+    return MOCK_USERS[normalized] || null;
   },
 
   // Get transaction history
