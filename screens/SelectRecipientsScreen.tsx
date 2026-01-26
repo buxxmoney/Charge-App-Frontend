@@ -1,6 +1,6 @@
 // screens/SelectRecipientScreen.tsx
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -31,7 +31,7 @@ interface SelectRecipientScreenProps {
 export const SelectRecipientScreen: React.FC<SelectRecipientScreenProps> = ({ navigation }) => {
   const { contacts } = useWalletContext();
   const [searchQuery, setSearchQuery] = useState('');
-  const [lookupResult, setLookupResult] = useState<LookedUpUser | null>(null);
+  const [lookupResults, setLookupResults] = useState<LookedUpUser[]>([]);
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState<string | null>(null);
 
@@ -47,36 +47,44 @@ export const SelectRecipientScreen: React.FC<SelectRecipientScreenProps> = ({ na
     );
   }, [contacts, searchQuery]);
 
-  // Check if search query looks like a phone number
-  const isPhoneNumber = (query: string) => {
-    const cleaned = query.replace(/[\s\-\(\)]/g, '');
-    return /^\+?[0-9]{10,15}$/.test(cleaned);
-  };
+  // Debounced search - auto-search after user stops typing
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.length < 2) {
+      setLookupResults([]);
+      setLookupError(null);
+      return;
+    }
 
-  // Lookup user by phone number
-  const handleLookup = async () => {
-    if (!isPhoneNumber(searchQuery)) return;
-    
-    Keyboard.dismiss();
+    const timeoutId = setTimeout(() => {
+      handleLookup(searchQuery);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  // Lookup user by phone or name
+  const handleLookup = async (query: string) => {
     setLookupLoading(true);
     setLookupError(null);
-    setLookupResult(null);
 
     try {
-      const result = await api.lookupUser(searchQuery);
-      if (result) {
-        // Check if already in contacts
-        const existingContact = contacts.find(
-          (c: any) => c.contact_user_id === result.user_id
+      const results = await api.lookupUser(query);
+      if (results && results.length > 0) {
+        // Filter out users already in contacts
+        const newUsers = results.filter(
+          (result: LookedUpUser) => !contacts.find((c: any) => c.contact_user_id === result.user_id)
         );
-        if (!existingContact) {
-          setLookupResult(result);
+        setLookupResults(newUsers);
+        if (newUsers.length === 0 && results.length > 0) {
+          // All found users are already contacts
+          setLookupResults([]);
         }
       } else {
-        setLookupError('No user found with this phone number');
+        setLookupResults([]);
       }
     } catch (err: any) {
       setLookupError(err.message || 'Failed to lookup user');
+      setLookupResults([]);
     } finally {
       setLookupLoading(false);
     }
@@ -103,14 +111,12 @@ export const SelectRecipientScreen: React.FC<SelectRecipientScreenProps> = ({ na
   };
 
   // Select from lookup result
-  const handleSelectLookup = () => {
-    if (lookupResult) {
-      handleSelectRecipient({
-        user_id: lookupResult.user_id,
-        name: lookupResult.name,
-        phone: searchQuery,
-      });
-    }
+  const handleSelectLookup = (user: LookedUpUser) => {
+    handleSelectRecipient({
+      user_id: user.user_id,
+      name: user.name,
+      phone: user.phone,
+    });
   };
 
   const renderContact = ({ item }: { item: any }) => (
@@ -138,7 +144,7 @@ export const SelectRecipientScreen: React.FC<SelectRecipientScreenProps> = ({ na
       <Feather name="users" size={48} color={colors.textTertiary} />
       <Text style={styles.emptyTitle}>No contacts yet</Text>
       <Text style={styles.emptySubtitle}>
-        Search by phone number to find{'\n'}someone to send to
+        Search by name or phone number{'\n'}to find someone to send to
       </Text>
     </View>
   );
@@ -147,9 +153,7 @@ export const SelectRecipientScreen: React.FC<SelectRecipientScreenProps> = ({ na
     <View style={styles.emptyState}>
       <Text style={styles.emptyTitle}>No matches</Text>
       <Text style={styles.emptySubtitle}>
-        {isPhoneNumber(searchQuery)
-          ? 'Tap "Search" to find this user'
-          : 'Try searching by phone number'}
+        Try a different name or phone number
       </Text>
     </View>
   );
@@ -177,20 +181,17 @@ export const SelectRecipientScreen: React.FC<SelectRecipientScreenProps> = ({ na
             placeholder="Search name or phone number"
             placeholderTextColor={colors.textTertiary}
             value={searchQuery}
-            onChangeText={(text) => {
-              setSearchQuery(text);
-              setLookupResult(null);
-              setLookupError(null);
-            }}
+            onChangeText={setSearchQuery}
             keyboardType="default"
             autoCapitalize="none"
             autoCorrect={false}
+            autoFocus
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity
               onPress={() => {
                 setSearchQuery('');
-                setLookupResult(null);
+                setLookupResults([]);
                 setLookupError(null);
               }}
             >
@@ -199,41 +200,36 @@ export const SelectRecipientScreen: React.FC<SelectRecipientScreenProps> = ({ na
           )}
         </View>
 
-        {/* Lookup button for phone numbers */}
-        {isPhoneNumber(searchQuery) && !lookupResult && (
-          <TouchableOpacity
-            style={styles.lookupButton}
-            onPress={handleLookup}
-            disabled={lookupLoading}
-          >
-            {lookupLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.lookupButtonText}>Search</Text>
-            )}
-          </TouchableOpacity>
+        {/* Loading indicator */}
+        {lookupLoading && (
+          <ActivityIndicator size="small" color={colors.primary} style={styles.loadingIndicator} />
         )}
       </View>
 
-      {/* Lookup Result */}
-      {lookupResult && (
+      {/* Lookup Results */}
+      {lookupResults.length > 0 && (
         <View style={styles.lookupResultSection}>
-          <Text style={styles.sectionTitle}>Found User</Text>
-          <TouchableOpacity
-            style={styles.contactItem}
-            onPress={handleSelectLookup}
-          >
-            <View style={[styles.avatar, styles.avatarNew]}>
-              <Text style={styles.avatarText}>
-                {lookupResult.name.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-            <View style={styles.contactInfo}>
-              <Text style={styles.contactName}>{lookupResult.name}</Text>
-              <Text style={styles.contactPhone}>{searchQuery}</Text>
-            </View>
-            <Feather name="chevron-right" size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
+          <Text style={styles.sectionTitle}>Search Results</Text>
+          {lookupResults.map((user) => (
+            <TouchableOpacity
+              key={user.user_id}
+              style={styles.contactItem}
+              onPress={() => handleSelectLookup(user)}
+            >
+              <View style={[styles.avatar, styles.avatarNew]}>
+                <Text style={styles.avatarText}>
+                  {user.name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactName}>{user.name}</Text>
+                {user.phone && (
+                  <Text style={styles.contactPhone}>{user.phone}</Text>
+                )}
+              </View>
+              <Feather name="chevron-right" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+          ))}
         </View>
       )}
 
@@ -255,7 +251,7 @@ export const SelectRecipientScreen: React.FC<SelectRecipientScreenProps> = ({ na
           keyExtractor={(item) => item.id}
           renderItem={renderContact}
           ListEmptyComponent={
-            searchQuery.length > 0 && !lookupResult
+            searchQuery.length > 0 && lookupResults.length === 0 && !lookupLoading
               ? renderSearchEmpty
               : contacts.length === 0
               ? renderEmptyContacts
@@ -309,6 +305,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.sm,
+  },
+  loadingIndicator: {
+    marginLeft: spacing.sm,
   },
   searchInput: {
     flex: 1,

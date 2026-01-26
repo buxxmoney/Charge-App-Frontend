@@ -1,34 +1,19 @@
-import * as Crypto from 'expo-crypto';
+// services/crypto.ts
 
-/**
- * Convert Uint8Array to hex string
- */
-const bytesToHex = (bytes: Uint8Array): string => {
-  return Array.from(bytes)
-    .map(byte => byte.toString(16).padStart(2, '0'))
-    .join('');
-};
+import { ethers } from 'ethers';
 
 /**
  * Generates a keypair for on-chain transactions
- * Device keypair (public + private) used for signing transactions
+ * Uses ethers.js for proper Ethereum-compatible keys
  */
 export const generateKeypair = async () => {
   try {
-    // Generate random bytes for private key
-    const privateKeyBytes = await Crypto.getRandomBytes(32);
-    const privateKey = bytesToHex(privateKeyBytes);
-    
-    // Derive public key (in production, use proper cryptography)
-    // For now, we'll use a simple hash-based derivation
-    const publicKeyHash = await Crypto.digestStringAsync(
-      Crypto.CryptoDigestAlgorithm.SHA256,
-      privateKey
-    );
+    // Generate a random wallet with proper ECDSA keypair
+    const wallet = ethers.Wallet.createRandom();
     
     return {
-      privateKey: `0x${privateKey}`,
-      publicKey: `0x${publicKeyHash}`,
+      privateKey: wallet.privateKey,
+      publicKey: wallet.address, // Ethereum address derived from public key
       generatedAt: new Date().toISOString(),
     };
   } catch (error) {
@@ -38,31 +23,57 @@ export const generateKeypair = async () => {
 };
 
 /**
- * Generates view key for encrypting/decrypting balances
+ * Signs a transaction fingerprint with the private key
+ * @param fingerprint - The transaction hash/fingerprint from the server
+ * @param privateKey - The user's private key
+ * @returns The signature
  */
-export const generateViewKey = async () => {
+export const signTransactionFingerprint = async (
+  fingerprint: string,
+  privateKey: string
+): Promise<string> => {
   try {
-    const viewKeyBytes = await Crypto.getRandomBytes(32);
-    const viewKey = bytesToHex(viewKeyBytes);
-    return `0x${viewKey}`;
+    const wallet = new ethers.Wallet(privateKey);
+    // Sign the raw bytes of the fingerprint
+    const signature = await wallet.signMessage(ethers.getBytes(fingerprint));
+    return signature;
   } catch (error) {
-    console.error('Error generating view key:', error);
+    console.error('Error signing transaction:', error);
     throw error;
   }
 };
 
 /**
- * Hashes a message for signing
+ * Verifies a signature (for testing/debugging)
  */
-export const hashMessage = async (message: string) => {
+export const verifySignature = (
+  fingerprint: string,
+  signature: string,
+  expectedAddress: string
+): boolean => {
   try {
-    const hash = await Crypto.digestStringAsync(
-      Crypto.CryptoDigestAlgorithm.SHA256,
-      message
+    const recoveredAddress = ethers.verifyMessage(
+      ethers.getBytes(fingerprint),
+      signature
     );
-    return `0x${hash}`;
+    return recoveredAddress.toLowerCase() === expectedAddress.toLowerCase();
   } catch (error) {
-    console.error('Error hashing message:', error);
-    throw error;
+    console.error('Error verifying signature:', error);
+    return false;
   }
+};
+
+/**
+ * Hashes a message using keccak256 (Ethereum's hash function)
+ */
+export const hashMessage = (message: string): string => {
+  return ethers.keccak256(ethers.toUtf8Bytes(message));
+};
+
+/**
+ * Generates view key for encrypting/decrypting balances
+ */
+export const generateViewKey = (): string => {
+  const randomBytes = ethers.randomBytes(32);
+  return ethers.hexlify(randomBytes);
 };

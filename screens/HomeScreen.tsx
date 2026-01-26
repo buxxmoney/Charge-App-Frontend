@@ -87,7 +87,7 @@ export const HomeScreen: React.FC = () => {
             subtitle="Send and receive"
             icon="dollar-sign"
             backgroundColor={colors.primary}
-            onPress={() => {}}
+            onPress={() => navigation.navigate('SelectRecipient')}
           />
           <FeatureCard
             title="Investments"

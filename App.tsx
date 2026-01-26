@@ -16,6 +16,7 @@ import { SettingsScreen } from './screens/SettingsScreen';
 import { ReceiveScreen } from './screens/ReceiveScreen';
 import { SelectRecipientScreen } from './screens/SelectRecipientsScreen';
 import { SendAmountScreen } from './screens/SendAmountScreen';
+import { ConfirmSendScreen } from './screens/ConfirmSendScreen';
 import { colors } from './constants/theme';
 
 const Tab = createBottomTabNavigator();
@@ -94,6 +95,13 @@ function RootStack() {
       <Stack.Screen
         name="SendAmount"
         component={SendAmountScreen}
+        options={{
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen
+        name="ConfirmSend"
+        component={ConfirmSendScreen}
         options={{
           animation: 'slide_from_right',
         }}

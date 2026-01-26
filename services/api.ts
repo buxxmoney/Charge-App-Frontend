@@ -4,15 +4,17 @@ const MOCK_ADDRESSES: Record<string, string> = {
   ZARP: '0x8Fc57204c35fb9317D91285eF52D6b892EC08cD3',
 };
 
-const MOCK_USERS: Record<string, { user_id: string; name: string }> = {
-  '+27821234567': { user_id: 'user-uuid-1', name: 'John Smith' },
-  '+27829876543': { user_id: 'user-uuid-2', name: 'Sarah Johnson' },
-  '+27831112222': { user_id: 'user-uuid-3', name: 'Mike Williams' },
-};
+const MOCK_USERS = [
+  { user_id: 'user-uuid-1', name: 'John Smith', phone: '+27821234567' },
+  { user_id: 'user-uuid-2', name: 'Sarah Johnson', phone: '+27829876543' },
+  { user_id: 'user-uuid-3', name: 'Mike Williams', phone: '+27831112222' },
+  { user_id: 'user-uuid-4', name: 'Emma Davis', phone: '+27845556666' },
+  { user_id: 'user-uuid-5', name: 'Vusi Ndlovu', phone: '+27857778888' },
+];
 
 export const api = {
   // Get user balance (on-chain or from a balance cache table if you have one)
-  async getBalance(userId: string): Promise<{ zarBalance: number; usdBalance: number; currency: string }> {
+  async getBalance(userId: string): Promise<{ zarBalance: number; usdBalance: number; currency: 'ZAR' | 'USD' }> {
     try {
       // TODO: Implement balance fetching from blockchain or balance table
       // For now, return mock data
@@ -30,32 +32,39 @@ export const api = {
   getDepositAddress: async (currency: 'USDC' | 'ZARP'): Promise<string> => {
     //  Uncomment when backend is ready
     // const response = await fetch(`${API_URL}/get_deposit_address?currency=${currency}`, {
-    //   headers: {
-    //     Authorization: `Bearer ${await getToken()}`,
-    //   },
+    //   headers: { Authorization: `Bearer ${await getToken()}` },
     // });
     // if (!response.ok) throw new Error('Failed to fetch deposit address');
     // const data = await response.json();
     // return data.address;
 
-    // Mock response for now
-    await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
+    // Mock response
+    await new Promise((resolve) => setTimeout(resolve, 500));
     return MOCK_ADDRESSES[currency];
   },
 
-  lookupUser: async (phone: string): Promise<{ user_id: string; name: string } | null> => {
-    // TODO: Uncomment when backend is ready
-    // const response = await fetch(`${API_URL}/lookup_user?phone=${encodeURIComponent(phone)}`, {
+  lookupUser: async (query: string): Promise<{ user_id: string; name: string; phone?: string }[]> => {
+    //  Uncomment when backend is ready
+    // const response = await fetch(`${API_URL}/lookup_user?query=${encodeURIComponent(query)}`, {
     //   headers: { Authorization: `Bearer ${await getToken()}` },
     // });
-    // if (!response.ok) return null;
+    // if (!response.ok) return [];
     // const data = await response.json();
     // return data;
 
     // Mock response
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    const normalized = phone.replace(/[\s\-\(\)]/g, '');
-    return MOCK_USERS[normalized] || null;
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    
+    const normalizedQuery = query.toLowerCase().replace(/[\s\-\(\)]/g, '');
+    
+    // Search by phone or name
+    const results = MOCK_USERS.filter(user => {
+      const phoneMatch = user.phone?.replace(/[\s\-\(\)]/g, '').includes(normalizedQuery);
+      const nameMatch = user.name.toLowerCase().includes(normalizedQuery);
+      return phoneMatch || nameMatch;
+    });
+    
+    return results;
   },
 
   // Get transaction history
@@ -298,6 +307,74 @@ export const api = {
       return {
         success: false,
         error: error.message || 'Failed to send transaction',
+      };
+    }
+  },
+
+  getTransactionFingerprint: async (params: {
+    recipientId: string;
+    amount: number;
+    currency: 'ZARP' | 'USDC';
+  }): Promise<string> => {
+    // TODO: Uncomment when backend is ready
+    // const response = await fetch(`${API_URL}/transaction_fingerprint`, {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     Authorization: `Bearer ${await getToken()}`,
+    //   },
+    //   body: JSON.stringify(params),
+    // });
+    // if (!response.ok) throw new Error('Failed to get transaction fingerprint');
+    // const data = await response.json();
+    // return data.fingerprint;
+
+    // Mock response - returns a fake keccak256 hash
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const mockFingerprint = '0x' + Array.from({ length: 64 }, () => 
+      Math.floor(Math.random() * 16).toString(16)
+    ).join('');
+    return mockFingerprint;
+  },
+
+  /**
+   * Submit signed transaction
+   * POST /submit_transaction
+   */
+  submitTransaction: async (params: {
+    fingerprint: string;
+    signature: string;
+    recipientId: string;
+    amount: number;
+    currency: 'ZARP' | 'USDC';
+  }): Promise<{ success: boolean; txHash?: string; error?: string }> => {
+    // TODO: Uncomment when backend is ready
+    // const response = await fetch(`${API_URL}/submit_transaction`, {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     Authorization: `Bearer ${await getToken()}`,
+    //   },
+    //   body: JSON.stringify(params),
+    // });
+    // const data = await response.json();
+    // return data;
+
+    // Mock response
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    
+    // Simulate 90% success rate
+    if (Math.random() > 0.1) {
+      return {
+        success: true,
+        txHash: '0x' + Array.from({ length: 64 }, () => 
+          Math.floor(Math.random() * 16).toString(16)
+        ).join(''),
+      };
+    } else {
+      return {
+        success: false,
+        error: 'Transaction failed. Please try again.',
       };
     }
   },

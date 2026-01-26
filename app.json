@@ -31,6 +31,9 @@
       "ios",
       "android",
       "web"
+    ],
+    "plugins": [
+      "expo-secure-store"
     ]
   }
 }
