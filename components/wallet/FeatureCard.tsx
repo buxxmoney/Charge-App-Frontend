@@ -27,7 +27,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
   subtitle,
   icon,
   backgroundColor,
-  iconColor = colors.background,
+  iconColor = colors.text,
   onPress,
   style,
 }) => {

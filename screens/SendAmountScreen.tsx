@@ -39,7 +39,7 @@ export const SendAmountScreen: React.FC<SendAmountScreenProps> = ({ navigation, 
   const [currency, setCurrency] = useState<Currency>('ZARP');
 
   const zarBalance = balance?.zarBalance ?? 100;
-  const usdBalance = balance?.usdBalance ?? 50;
+  const usdBalance = balance?.usdBalance ?? 0;
   const availableBalance = currency === 'ZARP' ? zarBalance : usdBalance;
   const currencySymbol = currency === 'ZARP' ? 'R' : '$';
 

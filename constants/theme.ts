@@ -7,20 +7,20 @@ export const colors = {
   
   // Text
   text: '#000000',
-  textSecondary: '#999999',
-  textTertiary: '#CCCCCC',
+  textSecondary: '#666666',
+  textTertiary: '#999999',
   
-  // Accent colors
-  primary: '#0066FF',      // Blue for primary actions
-  secondary: '#FF6B6B',    // Red/coral for earn
-  success: '#00C994',      // Green
-  warning: '#FFA500',      // Orange for investments
+  // Accent colors - monochrome
+  primary: '#000000',
+  secondary: '#1C1C1E',
+  success: '#000000',
+  warning: '#000000',
   
-  // Feature card backgrounds
-  cashBlue: '#0066FF',
-  investmentsOrange: '#FF9966',
-  earnPurple: '#7C3AED',
-  cardGray: '#333333',
+  // Feature card backgrounds - light gray
+  cashBlue: '#F5F5F5',
+  investmentsOrange: '#F5F5F5',
+  earnPurple: '#F5F5F5',
+  cardGray: '#F5F5F5',
   
   // Borders & dividers
   border: '#E8E8E8',
@@ -109,22 +109,21 @@ export const shadows = {
   },
 };
 
-// Colors object for theme-aware components (used by Expo Router tabs and themed components)
 export const Colors = {
   light: {
-    text: colors.text,
-    background: colors.background,
-    tint: colors.primary,
-    icon: colors.text,
-    tabIconDefault: colors.textSecondary,
-    tabIconSelected: colors.primary,
+    text: '#000000',
+    background: '#FFFFFF',
+    tint: '#000000',
+    icon: '#000000',
+    tabIconDefault: '#999999',
+    tabIconSelected: '#000000',
   },
   dark: {
     text: '#FFFFFF',
     background: '#000000',
-    tint: colors.primary,
+    tint: '#FFFFFF',
     icon: '#FFFFFF',
-    tabIconDefault: '#999999',
-    tabIconSelected: colors.primary,
+    tabIconDefault: '#666666',
+    tabIconSelected: '#FFFFFF',
   },
 };

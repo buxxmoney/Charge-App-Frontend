@@ -51,12 +51,6 @@ export const HomeScreen: React.FC = () => {
         {/* Header */}
         <View style={viewStyles.header}>
           <Text style={textStyles.headerTitle}>Wallet</Text>
-          <TouchableOpacity
-            style={viewStyles.settingsButton}
-            onPress={() => navigation.navigate('Settings')}
-          >
-            <Feather name="settings" size={24} color={colors.text} />
-          </TouchableOpacity>
         </View>
 
         {/* Balance Display */}
@@ -84,30 +78,30 @@ export const HomeScreen: React.FC = () => {
         <View style={viewStyles.featureGrid}>
           <FeatureCard
             title="Cash"
-            subtitle="Send and receive"
+            subtitle="Send crypto"
             icon="dollar-sign"
-            backgroundColor={colors.primary}
+            backgroundColor={colors.surface}
             onPress={() => navigation.navigate('SelectRecipient')}
           />
           <FeatureCard
             title="Investments"
             subtitle="Trade crypto"
             icon="grid"
-            backgroundColor="#FF9500"
+            backgroundColor={colors.surface}
             onPress={() => {}}
           />
           <FeatureCard
             title="Earn"
-            subtitle="Earn interest"
+            subtitle="Coming Soon"
             icon="trending-up"
-            backgroundColor="#AF52DE"
+            backgroundColor={colors.surface}
             onPress={() => {}}
           />
           <FeatureCard
             title="Card"
             subtitle="Coming soon"
             icon="credit-card"
-            backgroundColor="#2C2C2E"
+            backgroundColor={colors.surface}
             onPress={() => {}}
           />
         </View>
@@ -140,9 +134,6 @@ const viewStyles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-  },
-  settingsButton: {
-    padding: spacing.sm,
   },
   emptyState: {
     alignItems: 'center',

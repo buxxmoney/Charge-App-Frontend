@@ -72,12 +72,15 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   };
 
   const fetchBalance = async (userId: string) => {
+    console.log('📱 fetchBalance called with userId:', userId);
     setLoading(true);
     setError(null);
     try {
       const data = await api.getBalance(userId);
+      console.log('Balance data received:', data);
       setBalance(data);
     } catch (err: any) {
+      console.log('Balance fetch error:', err);
       setError(err.message || 'Failed to fetch balance');
     } finally {
       setLoading(false);

@@ -19,8 +19,8 @@ export const api = {
       // TODO: Implement balance fetching from blockchain or balance table
       // For now, return mock data
       return {
-        zarBalance: 0,
-        usdBalance: 0,
+        zarBalance: 77,
+        usdBalance: 69,
         currency: 'ZAR',
       };
     } catch (error) {
