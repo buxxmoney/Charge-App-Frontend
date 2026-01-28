@@ -78,10 +78,10 @@ export const HomeScreen: React.FC = () => {
         <View style={viewStyles.featureGrid}>
           <FeatureCard
             title="Cash"
-            subtitle="Send crypto"
+            subtitle="Send and receive crypto"
             icon="dollar-sign"
             backgroundColor={colors.surface}
-            onPress={() => navigation.navigate('SelectRecipient')}
+            onPress={() => navigation.navigate('Cash')}
           />
           <FeatureCard
             title="Investments"

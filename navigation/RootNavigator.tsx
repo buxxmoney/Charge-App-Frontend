@@ -147,7 +147,7 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
                   <Feather
                     name={iconName as any}
                     size={24}
-                    color={menuOpen ? '#999' : (isFocused ? '#fff' : '#666')}
+                    color={menuOpen ? '#999' : (isFocused ? '#C9A227' : '#666')}
                   />
                 </TouchableOpacity>
               );
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
   },
   tabBarWrapper: {
     position: 'absolute',
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#C9A227',  
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     borderRadius: 40,
   },
   menuContainer: {

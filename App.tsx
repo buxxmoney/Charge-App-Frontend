@@ -9,6 +9,9 @@ import { ReceiveScreen } from './screens/ReceiveScreen';
 import { SelectRecipientScreen } from './screens/SelectRecipientsScreen';
 import { SendAmountScreen } from './screens/SendAmountScreen';
 import { ConfirmSendScreen } from './screens/ConfirmSendScreen';
+import { CashScreen } from './screens/CashScreen';
+import { CurrencyDetailScreen } from './screens/CurrencyDetailScreen';
+import { DepositEFTScreen } from './screens/DepositEFTScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -38,6 +41,21 @@ export default function App() {
             <Stack.Screen
               name="ConfirmSend"
               component={ConfirmSendScreen}
+              options={{ animation: 'slide_from_right' }}
+            />
+            <Stack.Screen
+              name="Cash"
+              component={CashScreen}
+              options={{ animation: 'slide_from_right' }}
+            />
+            <Stack.Screen
+              name="CurrencyDetail"
+              component={CurrencyDetailScreen}
+              options={{ animation: 'slide_from_right' }}
+            />
+            <Stack.Screen
+              name="DepositEFT"
+              component={DepositEFTScreen}
               options={{ animation: 'slide_from_right' }}
             />
           </Stack.Navigator>

@@ -27,7 +27,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
   subtitle,
   icon,
   backgroundColor,
-  iconColor = colors.text,
+  iconColor = colors.gold,  // Changed to gold
   onPress,
   style,
 }) => {
@@ -63,7 +63,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
           <Feather
             name="chevron-right"
             size={20}
-            color={colors.textSecondary}
+            color={colors.gold}  // Also gold
           />
         </View>
       </View>
@@ -77,10 +77,11 @@ const viewStyles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   card: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
-    ...shadows.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   iconContainer: {
     width: 48,
@@ -115,3 +116,5 @@ const textStyles = StyleSheet.create({
     color: colors.textSecondary,
   },
 });
+
+export default FeatureCard;

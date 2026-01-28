@@ -2,32 +2,42 @@
 
 export const colors = {
   // Primary
-  background: '#FFFFFF',
-  surface: '#F5F5F5',
+  background: '#000000',
+  surface: '#1A1A1A',
+  surfaceLight: '#2A2A2A',
   
   // Text
-  text: '#000000',
-  textSecondary: '#666666',
-  textTertiary: '#999999',
+  text: '#FFFFFF',
+  textSecondary: '#999999',
+  textTertiary: '#666666',
   
-  // Accent colors - monochrome
-  primary: '#000000',
-  secondary: '#1C1C1E',
-  success: '#000000',
-  warning: '#000000',
+  // Gold accents
+  primary: '#C9A227',        // Main gold
+  primaryLight: '#FFD700',   // Bright gold
+  primaryDark: '#9A7B0A',    // Deep gold
   
-  // Feature card backgrounds - light gray
-  cashBlue: '#F5F5F5',
-  investmentsOrange: '#F5F5F5',
-  earnPurple: '#F5F5F5',
-  cardGray: '#F5F5F5',
+  // Status colors
+  success: '#C9A227',        // Gold for success
+  warning: '#FF9500',        // Orange for warnings
+  error: '#FF3B30',          // Red for errors
+  
+  // Feature card backgrounds - subtle dark variations
+  cardCash: '#1A1A1A',
+  cardInvestments: '#1A1A1A',
+  cardEarn: '#1A1A1A',
+  cardDefault: '#1A1A1A',
   
   // Borders & dividers
-  border: '#E8E8E8',
-  divider: '#F0F0F0',
+  border: '#333333',
+  divider: '#222222',
   
   // Status bar
   statusBar: '#000000',
+  
+  // Special
+  gold: '#C9A227',
+  goldLight: '#FFD700',
+  goldDark: '#9A7B0A',
 };
 
 export const spacing = {
@@ -87,23 +97,23 @@ export const borderRadius = {
 
 export const shadows = {
   sm: {
-    shadowColor: '#000',
+    shadowColor: '#C9A227',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
   md: {
-    shadowColor: '#000',
+    shadowColor: '#C9A227',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 4,
   },
   lg: {
-    shadowColor: '#000',
+    shadowColor: '#C9A227',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 8,
   },
@@ -113,17 +123,17 @@ export const Colors = {
   light: {
     text: '#000000',
     background: '#FFFFFF',
-    tint: '#000000',
+    tint: '#C9A227',
     icon: '#000000',
     tabIconDefault: '#999999',
-    tabIconSelected: '#000000',
+    tabIconSelected: '#C9A227',
   },
   dark: {
     text: '#FFFFFF',
     background: '#000000',
-    tint: '#FFFFFF',
+    tint: '#C9A227',
     icon: '#FFFFFF',
     tabIconDefault: '#666666',
-    tabIconSelected: '#FFFFFF',
+    tabIconSelected: '#C9A227',
   },
 };

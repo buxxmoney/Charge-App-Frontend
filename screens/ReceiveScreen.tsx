@@ -146,7 +146,7 @@ export const ReceiveScreen: React.FC<ReceiveScreenProps> = ({ navigation }) => {
                   value={depositAddress}
                   size={200}
                   backgroundColor="#fff"
-                  color={colors.text}
+                  color='#000'
                 />
               </View>
 

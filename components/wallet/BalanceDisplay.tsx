@@ -6,9 +6,9 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Switch,
+  TextStyle,
 } from 'react-native';
-import { colors, typography, spacing } from '../../constants/theme';
+import { colors, typography, spacing, borderRadius } from '../../constants/theme';
 
 interface BalanceDisplayProps {
   zarBalance: number;
@@ -19,10 +19,9 @@ export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({
   zarBalance,
   usdBalance,
 }) => {
-  const [showZAR, setShowZAR] = useState(true);
-  const balance = showZAR ? zarBalance : usdBalance;
-  const currency = showZAR ? 'ZAR' : 'USD';
-  const symbol = showZAR ? 'R' : '$';
+  const [selectedCurrency, setSelectedCurrency] = useState<'ZAR' | 'USD'>('ZAR');
+  const balance = selectedCurrency === 'ZAR' ? zarBalance : usdBalance;
+  const symbol = selectedCurrency === 'ZAR' ? 'R' : '$';
 
   const formatBalance = (amount: number) => {
     return amount.toFixed(2);
@@ -30,18 +29,45 @@ export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Header with toggle */}
+      {/* Header with segmented toggle */}
       <View style={styles.header}>
         <Text style={styles.label}>Total Balance</Text>
-        <View style={styles.toggleContainer}>
-          <Text style={styles.currencyText}>{currency}</Text>
-          <Switch
-            value={!showZAR}
-            onValueChange={(value) => setShowZAR(!value)}
-            trackColor={{ false: '#E8E8E8', true: '#E8E8E8' }}
-            thumbColor={colors.primary}
-            style={styles.switch}
-          />
+        
+        {/* Segmented Control */}
+        <View style={styles.segmentedControl}>
+          <TouchableOpacity
+            style={[
+              styles.segment,
+              selectedCurrency === 'ZAR' && styles.segmentActive,
+            ]}
+            onPress={() => setSelectedCurrency('ZAR')}
+          >
+            <Text
+              style={[
+                styles.segmentText,
+                selectedCurrency === 'ZAR' && styles.segmentTextActive,
+              ]}
+            >
+              ZAR
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.segment,
+              selectedCurrency === 'USD' && styles.segmentActive,
+            ]}
+            onPress={() => setSelectedCurrency('USD')}
+          >
+            <Text
+              style={[
+                styles.segmentText,
+                selectedCurrency === 'USD' && styles.segmentTextActive,
+              ]}
+            >
+              USD
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -57,7 +83,7 @@ export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({
           <View
             style={[
               styles.percentageFill,
-              { width: '100%' }, // 100% full
+              { width: '100%' },
             ]}
           />
         </View>
@@ -81,39 +107,48 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   label: {
-    ...typography.caption,
+    fontSize: typography.caption.fontSize,
     color: colors.textTertiary,
     fontWeight: '500',
-  },
-  toggleContainer: {
+  } as TextStyle,
+  segmentedControl: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    padding: 4,
   },
-  currencyText: {
-    ...typography.caption,
-    color: colors.text,
+  segment: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md - 2,
+  },
+  segmentActive: {
+    backgroundColor: colors.gold,
+  },
+  segmentText: {
+    fontSize: typography.caption.fontSize,
     fontWeight: '600',
-  },
-  switch: {
-    transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
-  },
+    color: colors.textSecondary,
+  } as TextStyle,
+  segmentTextActive: {
+    color: colors.background,
+  } as TextStyle,
   balanceContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: spacing.lg,
   },
   symbol: {
-    ...typography.display,
+    fontSize: typography.display.fontSize,
+    fontWeight: '700',
     color: colors.text,
-    fontWeight: '700',
     marginRight: spacing.sm,
-  },
+  } as TextStyle,
   amount: {
-    ...typography.display,
-    color: colors.textTertiary,
+    fontSize: typography.display.fontSize,
     fontWeight: '700',
-  },
+    color: colors.textTertiary,
+  } as TextStyle,
   percentageContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -128,13 +163,15 @@ const styles = StyleSheet.create({
   },
   percentageFill: {
     height: '100%',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.gold,
   },
   percentageText: {
-    ...typography.caption,
+    fontSize: typography.caption.fontSize,
     color: colors.textTertiary,
     fontWeight: '500',
     minWidth: 30,
     textAlign: 'right',
-  },
+  } as TextStyle,
 });
+
+export default BalanceDisplay;
