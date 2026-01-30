@@ -6,7 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { spacing } from '../constants/theme';
+import { colors, spacing, borderRadius } from '../constants/theme';
 import { HomeScreen } from '../screens/HomeScreen';
 import { HistoryScreen } from '../screens/HistoryScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
@@ -89,8 +89,8 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
               onPress={() => handleMenuAction('deposit')}
             >
               <Text style={styles.menuLabel}>Receive</Text>
-              <View style={[styles.menuIcon, { backgroundColor: '#FFF0E6' }]}>
-                <Feather name="arrow-down" size={20} color="#FF9500" />
+              <View style={[styles.menuIcon, { backgroundColor: '#F3E8FF' }]}>
+                <Feather name="arrow-down-left" size={20} color={colors.primary} />
               </View>
             </TouchableOpacity>
             
@@ -99,8 +99,8 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
               onPress={() => handleMenuAction('send')}
             >
               <Text style={styles.menuLabel}>Send</Text>
-              <View style={[styles.menuIcon, { backgroundColor: '#F0E6FF' }]}>
-                <Feather name="send" size={20} color="#8B5CF6" />
+              <View style={[styles.menuIcon, { backgroundColor: '#F3E8FF' }]}>
+                <Feather name="send" size={20} color={colors.primary} />
               </View>
             </TouchableOpacity>
             
@@ -109,8 +109,8 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
               onPress={() => handleMenuAction('swap')}
             >
               <Text style={styles.menuLabel}>Swap</Text>
-              <View style={[styles.menuIcon, { backgroundColor: '#E6F0FF' }]}>
-                <Feather name="repeat" size={20} color="#3B82F6" />
+              <View style={[styles.menuIcon, { backgroundColor: '#F3E8FF' }]}>
+                <Feather name="repeat" size={20} color={colors.primary} />
               </View>
             </TouchableOpacity>
           </Animated.View>
@@ -147,7 +147,7 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
                   <Feather
                     name={iconName as any}
                     size={24}
-                    color={menuOpen ? '#999' : (isFocused ? '#C9A227' : '#666')}
+                    color={menuOpen ? '#D1D5DB' : (isFocused ? colors.primary : '#9CA3AF')}
                   />
                 </TouchableOpacity>
               );
@@ -157,7 +157,7 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
             {menuOpen && <View style={styles.pillOverlay} />}
           </View>
 
-          {/* Right plus button */}
+          {/* Right plus button - only on Home */}
           {state.routes[state.index].name === 'Home' && (
             <TouchableOpacity style={styles.plusButton} onPress={toggleMenu}>
               <Animated.View style={{ transform: [{ rotate: plusRotation }] }}>
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   tabBarWrapper: {
     position: 'absolute',
@@ -210,13 +210,15 @@ const styles = StyleSheet.create({
   },
   pillContainer: {
     flexDirection: 'row',
-    backgroundColor: '#1C1C1E',
+    backgroundColor: colors.surface,
     borderRadius: 40,
     paddingVertical: 12,
     paddingHorizontal: 8,
     gap: 4,
     position: 'relative',
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   tabButton: {
     paddingHorizontal: 16,
@@ -227,7 +229,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#C9A227',  
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -237,13 +239,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderRadius: 40,
   },
   menuContainer: {
     position: 'absolute',
     right: spacing.lg,
-    bottom: 120,
+    bottom: 100,
     alignItems: 'flex-end',
     gap: 16,
   },
@@ -255,7 +257,7 @@ const styles = StyleSheet.create({
   menuLabel: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#000',
+    color: '#fff',
   },
   menuIcon: {
     width: 44,

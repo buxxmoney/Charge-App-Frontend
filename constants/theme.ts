@@ -2,42 +2,42 @@
 
 export const colors = {
   // Primary
-  background: '#000000',
-  surface: '#1A1A1A',
-  surfaceLight: '#2A2A2A',
+  background: '#FFFFFF',
+  surface: '#F8F8FA',
+  surfaceLight: '#F0F0F5',
   
   // Text
-  text: '#FFFFFF',
-  textSecondary: '#999999',
-  textTertiary: '#666666',
+  text: '#1A1A2E',
+  textSecondary: '#6B7280',
+  textTertiary: '#9CA3AF',
   
-  // Gold accents
-  primary: '#C9A227',        // Main gold
-  primaryLight: '#FFD700',   // Bright gold
-  primaryDark: '#9A7B0A',    // Deep gold
+  // Purple accents
+  primary: '#7C3AED',        // Main purple
+  primaryLight: '#A78BFA',   // Light purple
+  primaryDark: '#5B21B6',    // Deep purple
   
   // Status colors
-  success: '#C9A227',        // Gold for success
-  warning: '#FF9500',        // Orange for warnings
-  error: '#FF3B30',          // Red for errors
+  success: '#10B981',
+  warning: '#F59E0B',
+  error: '#EF4444',
   
-  // Feature card backgrounds - subtle dark variations
-  cardCash: '#1A1A1A',
-  cardInvestments: '#1A1A1A',
-  cardEarn: '#1A1A1A',
-  cardDefault: '#1A1A1A',
+  // Card backgrounds
+  cardCash: '#F8F8FA',
+  cardInvestments: '#F8F8FA',
+  cardEarn: '#F8F8FA',
+  cardDefault: '#F8F8FA',
   
   // Borders & dividers
-  border: '#333333',
-  divider: '#222222',
+  border: '#E5E7EB',
+  divider: '#F3F4F6',
   
   // Status bar
-  statusBar: '#000000',
+  statusBar: '#FFFFFF',
   
   // Special
-  gold: '#C9A227',
-  goldLight: '#FFD700',
-  goldDark: '#9A7B0A',
+  purple: '#7C3AED',
+  purpleLight: '#A78BFA',
+  purpleDark: '#5B21B6',
 };
 
 export const spacing = {
@@ -97,43 +97,43 @@ export const borderRadius = {
 
 export const shadows = {
   sm: {
-    shadowColor: '#C9A227',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  md: {
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
-  md: {
-    shadowColor: '#C9A227',
+  lg: {
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 4,
   },
-  lg: {
-    shadowColor: '#C9A227',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
-  },
 };
 
 export const Colors = {
   light: {
-    text: '#000000',
+    text: '#1A1A2E',
     background: '#FFFFFF',
-    tint: '#C9A227',
-    icon: '#000000',
-    tabIconDefault: '#999999',
-    tabIconSelected: '#C9A227',
+    tint: '#7C3AED',
+    icon: '#1A1A2E',
+    tabIconDefault: '#9CA3AF',
+    tabIconSelected: '#7C3AED',
   },
   dark: {
     text: '#FFFFFF',
-    background: '#000000',
-    tint: '#C9A227',
+    background: '#1A1A2E',
+    tint: '#A78BFA',
     icon: '#FFFFFF',
-    tabIconDefault: '#666666',
-    tabIconSelected: '#C9A227',
+    tabIconDefault: '#6B7280',
+    tabIconSelected: '#A78BFA',
   },
 };

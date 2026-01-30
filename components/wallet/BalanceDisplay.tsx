@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md - 2,
   },
   segmentActive: {
-    backgroundColor: colors.gold,
+    backgroundColor: colors.primaryLight,
   },
   segmentText: {
     fontSize: typography.caption.fontSize,
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   },
   percentageFill: {
     height: '100%',
-    backgroundColor: colors.gold,
+    backgroundColor: colors.primaryLight,
   },
   percentageText: {
     fontSize: typography.caption.fontSize,

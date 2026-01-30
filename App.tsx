@@ -20,7 +20,7 @@ export default function App() {
     <SafeAreaProvider>
       <WalletProvider>
         <NavigationContainer>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="MainTabs" component={RootNavigator} />
             <Stack.Screen

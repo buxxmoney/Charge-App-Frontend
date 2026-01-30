@@ -27,7 +27,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
   subtitle,
   icon,
   backgroundColor,
-  iconColor = colors.gold,  // Changed to gold
+  iconColor = colors.primaryLight,  // Changed to gold
   onPress,
   style,
 }) => {
@@ -63,7 +63,7 @@ export const FeatureCard: React.FC<FeatureCardProps> = ({
           <Feather
             name="chevron-right"
             size={20}
-            color={colors.gold}  // Also gold
+            color={colors.primaryLight}  // Also gold
           />
         </View>
       </View>
